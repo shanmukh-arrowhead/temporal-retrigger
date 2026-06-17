@@ -9,7 +9,6 @@ pub struct TemporalConfig {
     pub address: String,
     pub namespace: String,
     pub api_key: Option<String>,
-    pub tls: bool,
 }
 
 impl TemporalConfig {
@@ -19,13 +18,11 @@ impl TemporalConfig {
             self.address.clone(),
             "--namespace".to_string(),
             self.namespace.clone(),
+            "--tls".to_string(),
         ];
         if let Some(ref key) = self.api_key {
             args.push("--api-key".to_string());
             args.push(key.clone());
-        }
-        if self.tls {
-            args.push("--tls".to_string());
         }
         args
     }

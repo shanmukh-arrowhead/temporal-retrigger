@@ -12,20 +12,12 @@ use tokio::sync::Semaphore;
 #[command(name = "retrigger", about = "Retrigger Temporal post-processor workflows")]
 struct Cli {
     /// Temporal server address (e.g. my-ns.tmprl.cloud:7233)
-    #[arg(long, env = "TEMPORAL_ADDRESS", default_value = "localhost:7233")]
+    #[arg(long, env = "TEMPORAL_ADDRESS")]
     address: String,
-
-    /// Temporal namespace
-    #[arg(long, env = "TEMPORAL_NAMESPACE", default_value = "default")]
-    namespace: String,
 
     /// API key for Temporal Cloud
     #[arg(long, env = "TEMPORAL_API_KEY")]
     api_key: Option<String>,
-
-    /// Enable TLS (default for cloud)
-    #[arg(long, env = "TEMPORAL_TLS", default_value_t = false)]
-    tls: bool,
 
     #[command(subcommand)]
     command: Commands,
@@ -68,12 +60,18 @@ enum Commands {
     },
 }
 
+fn namespace_from_address(address: &str) -> String {
+    let host = address.split(':').next().unwrap_or(address);
+    host.strip_suffix(".tmprl.cloud")
+        .map(str::to_string)
+        .unwrap_or_else(|| "default".to_string())
+}
+
 fn build_config(cli: &Cli) -> TemporalConfig {
     TemporalConfig {
+        namespace: namespace_from_address(&cli.address),
         address: cli.address.clone(),
-        namespace: cli.namespace.clone(),
         api_key: cli.api_key.clone(),
-        tls: cli.tls,
     }
 }
 
